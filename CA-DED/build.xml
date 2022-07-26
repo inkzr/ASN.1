@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<!--
+			*** CA-DED CONFIGURATION FILE ***
+===================================================================
+ * Licensed to the ZCrypto @2013.
+ * This software is the proprietary information of ZCrypto.
+ * Use is subject to license terms.
+ * 
+ * Author : nirmalkrbiswas@gmail.com
+===================================================================
+-->
+<project name="CA-DED" basedir="." default="makejar">
+	<!-- File containing global properties for build -->
+	<property environment="env" />
+	<property file="./build.properties" />
+
+	<!-- Build sources and destinations -->
+	<property name="src-core" value="./src-core" />
+	<property name="src-data" value="./src-date" />
+	<property name="src-util" value="./src-util" />
+	<property name="jdocdir" value="${TEMP_LOC}/api" />
+	<property name="classdir" value="${TEMP_LOC}/classes" />
+	<property name="jardir" value="${TEMP_LOC}/jars" />
+
+	<!-- PREPARE -->
+	<target name="prepare">
+		<echo message="==============================================================" />
+		<echo message="		- : 	ZCrypto BM AND CP		:-						 " />
+		<echo message="==============================================================" />
+		<echo message="Project : ${ant.project.name}" />
+		<echo message="--------------------------------------------------------------" />
+		<echo message="Using Java: ${ant.java.version}" />
+		<echo message="--------------------------------------------------------------" />
+		<echo message="With Ant: ${ant.version}" />
+		<echo message="--------------------------------------------------------------" />
+		<echo message="Creating directory : " />
+		<mkdir dir="${TEMP_LOC}" />
+		<mkdir dir="${classdir}" />
+		<mkdir dir="${jardir}" />
+	</target>
+
+	<!-- CLEAN -->
+	<target name="clean">
+		<delete includeEmptyDirs="true">
+			<fileset dir="./temp" />
+		</delete>
+	</target>
+
+	<!-- COMPILE   -->
+	<target name="compile" depends="prepare">
+		<echo message="Compiling source : " />
+		<javac srcdir="${src-core}" destdir="${classdir}" optimize="off" debug="on" deprecation="true" includeantruntime="false" compiler="${COMPILER_TYPE}">
+		</javac>
+		<javac srcdir="${src-data}" destdir="${classdir}" optimize="off" debug="on" deprecation="true" includeantruntime="false" compiler="${COMPILER_TYPE}">
+			<classpath path="${LIB}/antlr-2.7.7.jar" />
+		</javac>
+		<javac srcdir="${src-util}" destdir="${classdir}" optimize="off" debug="on" deprecation="true" includeantruntime="false" compiler="${COMPILER_TYPE}">
+			<classpath path="${LIB}/antlr-2.7.7.jar" />
+		</javac>
+	</target>
+
+	<!-- MAKE JAR FILE  -->
+	<target name="makejar" depends="compile">
+		<echo message="Building jar file : " />
+		<tstamp>
+			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en" />
+		</tstamp>
+		<manifest file="MANIFEST.MF">
+			<attribute name="Built-By" value="iNK" />
+			<section name="CA-DED CORE SYSTEM">
+				<attribute name="Implementation-Title" value="${JarDef}" />
+				<attribute name="Implementation-Version" value="latest" />
+				<attribute name="Implementation-Date" value="${TODAY}" />
+				<attribute name="Implementation-Vendor" value="ZCrypto" />
+				<attribute name="Dependencies" value="" />
+				<attribute name="antlr-jar" value="" />
+			</section>
+		</manifest>
+
+		<jar jarfile="${jardir}/${JarDef}" manifest="./MANIFEST.MF">
+			<fileset dir="${classdir}/">
+				<patternset>
+					<include name="**" />
+				</patternset>
+			</fileset>
+		</jar>
+	</target>
+
+	<!--  MOVE JAR TO DISTRIBUTION -->
+	<target name="deploy" depends="makejar">
+		<echo message="Deploying jar to distribution : " />
+		<copy file="${jardir}/${JarDef}" todir="${DEPLOY_DIR}/client/lib" />
+		<copy file="${jardir}/${JarDef}" todir="${DEPLOY_DIR}/server/lib" />
+	</target>
+
+	<!--  MOVE JAR FOR LOCAL DEPLOYMENT -->
+	<target name="lhdeploy" depends="makejar">
+		<echo message="Deploying jar to local installation: " />
+		<copy file="${jardir}/${JarDef}" todir="${LHDEP_DIR}" />
+	</target>
+
+	<!--  MOVE JAR FOR REMOTE DEPLOYMENT -->
+	<target name="rhdeploy" depends="makejar">
+		<echo message="Deploying jar to remote installation: " />
+		<scp trust="true" file="${jardir}/${JarDef}" todir="${RHDEP_DIR}" />
+	</target>
+
+	<!--  MOVE JAR FOR LOCAL DEPLOYMENT 
+	<target name="lhdeploy" depends="makejar">
+		<echo message="Deploying jar to local installation: "/>
+		<input message="Please enter local deployment location: " addproperty="lhd.location"/>
+		<copy file="${jardir}/${Jar_Name}" todir="${lhd.location}" />
+	</target-->
+
+	<!--  MOVE JAR FOR REMOTE DEPLOYMENT 
+	<target name="rhdeploy" depends="makejar">
+		<echo message="Deploying jar to remote installation: "/>
+		<input message="Please enter remote host address: " addproperty="rhd.address"/>
+		<input message="Please enter usernmae: " addproperty="rhd.user"/>
+		<input message="Please enter password: " addproperty="rhd.pwd"/>
+		<input message="Please enter remote deployment location: " addproperty="rhd.location"/>
+		<scp trust="true" file="${jardir}/${Jar_Name}" todir="${rhd.user}:${rhd:pwd}@${rhd.address}:/${rhd.location}"/>
+	</target-->
+
+
+	<!--  MOVE JAR TO BASELINE -->
+
+	<target name="baseline" depends="makejar">
+		<mkdir dir="${baseline_server}/Utility/ASNUtil/${ASNUtil}" />
+		<move file="${jardir}/${JarDef}" todir="${baseline_server}/Utility/ASNUtil/${ASNUtil}" />
+
+	</target>
+
+</project>
+
+
+
+
